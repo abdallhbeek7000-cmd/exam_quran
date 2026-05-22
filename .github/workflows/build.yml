@@ -9,37 +9,37 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # 1. سحب كود المشروع من غيت هاب
+      # 1. سحب الكود
       - uses: actions/checkout@v3
 
-      # 2. تهيئة الجافا الضرورية لبناء الأندرويد
+      # 2. تهيئة الجافا
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      # 3. 🎯 السطر السحري اللي حل المشكلة سابقاً: تثبيت الفلاتر وتجهيز المسارات للسيرفر تلقائياً!
+      # 3. تثبيت الفلاتر سحابياً بـ إصدار محدد لإجبار السيرفر على التحميل الفوري
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          cache: true
+          flutter-version: '3.22.x' # تحديد الإصدار يمنع السيرفر من عمل Skip 🎯
 
-      # 4. سحب المكاتب والاعتمادات للمشروع
+      # 4. سحب مكاتب المشروع
       - name: Get Dependencies
         run: flutter pub get
 
-      # 5. أمر بناء نسخة الـ APK النهائية
+      # 5. أمر بناء الـ APK
       - name: Build APK
         run: flutter build apk --release
 
-      # 6. رفع الـ APK الجاهز مباشرة لقسم الـ Releases
+      # 6. الرفع الفوري كـ روليز جديد تماماً
       - name: Upload APK to Releases
         uses: softprops/action-gh-release@v1
         with:
           files: build/app/outputs/flutter-apk/app-release.apk
-          tag_name: v1.0.0
-          name: الإصدار الجاهز للتثبيت 📱
+          tag_name: v1.0.1 # 🌟 رقم جديد بالملي لتصفير كاش غيت هاب الملعون
+          name: الإصدار المطور والمصحح 📖
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
