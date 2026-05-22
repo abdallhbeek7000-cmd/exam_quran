@@ -9,17 +9,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     
-    # 🎯 الصلاحية اللي ضفناها مشان يقدر يرفع الـ APK
-    permissions:
-      contents: write
-
     steps:
-      # 1. سحب الكود
-      - uses: actions/checkout@v3
+      # 1. سحب الكود (تم التحديث لـ v4 لإخفاء التحذير الأصفر)
+      - uses: actions/checkout@v4
 
-      # 2. تهيئة الجافا
+      # 2. تهيئة الجافا (تم التحديث لـ v4 لإخفاء التحذير الأصفر)
       - name: Set up Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
@@ -31,7 +27,7 @@ jobs:
           channel: 'stable'
           flutter-version: '3.22.x'
 
-      # 4. 🎯 الضربة القاضية: استخراج المسار الفعلي للفلاتر من النظام
+      # 4. استخراج المسار الفعلي للفلاتر من النظام
       - name: Generate local.properties for GitHub Server
         run: |
           FLUTTER_PATH=$(dirname $(dirname $(which flutter)))
@@ -48,12 +44,9 @@ jobs:
       - name: Build APK
         run: flutter build apk --release
 
-      # 7. الرفع لقسم الـ Releases
-      - name: Upload APK to Releases
-        uses: softprops/action-gh-release@v1
+      # 7. 🎯 التعديل الجديد: رفع الـ APK كـ Artifact ليظهر في أسفل صفحة الـ Summary
+      - name: Upload APK as Artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: build/app/outputs/flutter-apk/app-release.apk
-          tag_name: v1.0.2
-          name: إصدار التطبيق المستقر 📖
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: quran-exam-app-release
+          path: build/app/outputs/flutter-apk/app-release.apk

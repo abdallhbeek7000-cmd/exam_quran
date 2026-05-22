@@ -118,6 +118,43 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
     );
   }
 
+  // 🎯 التعديل الجديد: دالة حذف نتيجة الاختبار
+  void _deleteExamResult(String docId, String studentName) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تأكيد الحذف', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+        content: Text('هل أنت متأكد أنك تريد حذف نتيجة اختبار "$studentName" نهائياً؟\nلا يمكن التراجع عن هذا الإجراء.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              Navigator.pop(context); // إغلاق النافذة
+              try {
+                // حذف الـ Document من الفايربيز
+                await FirebaseFirestore.instance.collection('exams_results').doc(docId).delete();
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('تم حذف النتيجة بنجاح! 🗑️'), backgroundColor: Colors.green),
+                );
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('حدث خطأ أثناء الحذف: $e'), backgroundColor: Colors.red),
+                );
+              }
+            },
+            child: const Text('حذف النتيجة', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSliderCard(String title, double value, Function(double) onChanged) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -243,6 +280,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
                 itemCount: docs.length,
                 itemBuilder: (context, index) {
                   var data = docs[index].data() as Map<String, dynamic>;
+                  String docId = docs[index].id; // 🎯 جلب المعرف الفريد للنتيجة
                   String name = data['student_name'] ?? 'طالب';
                   double score = (data['score'] ?? 0.0).toDouble();
                   List<dynamic> errorsDetails = data['errors_details'] ?? [];
@@ -281,7 +319,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
                                 )).toList(),
                               ],
                             ),
-                          )
+                          ),
+                        // 🎯 التعديل الجديد: إضافة زر الحذف نهاية تفاصيل النتيجة
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: TextButton.icon(
+                              onPressed: () => _deleteExamResult(docId, name),
+                              icon: const Icon(Icons.delete_forever, color: Colors.red, size: 20),
+                              label: const Text("حذف هذه النتيجة", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   );
