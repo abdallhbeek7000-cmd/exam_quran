@@ -3,7 +3,7 @@ name: Build and Release Flutter APK
 on:
   push:
     branches:
-      - main # يشتغل التلقائي فوراً عندما ترفع على فرع main
+      - main
 
 jobs:
   build:
@@ -20,8 +20,13 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x' # يسحب نسخة فلاتر المستقرة
           channel: 'stable'
+
+      # 🎯 الأمر السحري الجديد لإصلاح خطأ الـ local.properties أونلاين
+      - name: Create local.properties for Android build
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          echo "flutter.sdk=$FLUTTER_HOME" >> android/local.properties
 
       - name: Get Dependencies
         run: flutter pub get
