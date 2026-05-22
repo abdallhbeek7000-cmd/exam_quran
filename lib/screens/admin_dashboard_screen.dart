@@ -80,6 +80,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         title: Text("تحديد اختبار لـ $studentName", style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
         content: SingleChildScrollView(
           child: Column(
@@ -118,11 +119,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
     );
   }
 
-  // 🎯 التعديل الجديد: دالة حذف نتيجة الاختبار
   void _deleteExamResult(String docId, String studentName) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         title: const Text('تأكيد الحذف', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
         content: Text('هل أنت متأكد أنك تريد حذف نتيجة اختبار "$studentName" نهائياً؟\nلا يمكن التراجع عن هذا الإجراء.'),
         actions: [
@@ -133,9 +134,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
-              Navigator.pop(context); // إغلاق النافذة
+              Navigator.pop(context); 
               try {
-                // حذف الـ Document من الفايربيز
                 await FirebaseFirestore.instance.collection('exams_results').doc(docId).delete();
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -187,7 +187,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
           tabs: const [
             Tab(icon: Icon(Icons.settings), text: "المعايير وقفل النظام"),
             Tab(icon: Icon(Icons.assignment_ind), text: "تحديد الاختبارات"),
-            Tab(icon: Icon(Icons.bar_chart), text: "كل النتائج والأخطاء"),
+            Tab(icon: Icon(Icons.bar_chart), text: "كل النتائج والأخطاء 📊"),
           ],
         ),
         actions: [
@@ -197,7 +197,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
       body: TabBarView(
         controller: _tabController,
         children: [
-          // 🛠️ التبويب الأول: السليدرات والقفل أونلاين
+          // التبويب الأول
           ListView(
             padding: const EdgeInsets.all(15),
             children: [
@@ -211,11 +211,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
               _buildSliderCard("7. الوقف والابتداء خطأ", waqfWrong, (v) => setState(() => waqfWrong = v)),
               _buildSliderCard("8. الوقف والابتداء خطأ قبيح", waqfUgly, (v) => setState(() => waqfUgly = v)),
               const SizedBox(height: 15),
-              ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xff425c75)), onPressed: _saveSettings, child: const Text("حفظ المعايير السحابية", style: TextStyle(color: Colors.white)))
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xff425c75)), 
+                onPressed: _isSaving ? null : _saveSettings,
+                child: _isSaving 
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Text("حفظ المعايير السحابية", style: TextStyle(color: Colors.white))
+              )
             ],
           ),
 
-          // 🎯 التبويب الثاني: تحديد الاختبارات وعرض الصور والمشرفين
+          // التبويب الثاني
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance.collection('students').snapshots(),
             builder: (context, snapshot) {
@@ -238,7 +244,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                     child: ListTile(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                      // 🖼️ عرض صورة الطالب من Cloudinary أو عرض دائرية بحرف اسمه إذا كانت فارغة
                       leading: CircleAvatar(
                         radius: 25,
                         backgroundColor: const Color(0xff425c75).withOpacity(0.1),
@@ -248,7 +253,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
                             : null,
                       ),
                       title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                      // 👨‍🏫 إضافة اسم المشرف تحت اسم الطالب وتنسيق المطلوب
                       subtitle: Padding(
                         padding: const EdgeInsets.only(top: 4.0),
                         child: Text(
@@ -267,23 +271,30 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
             },
           ),
 
-          // 📈 التبويب الثالث: عرض تفاصيل مواضع الأخطاء الحية لكل طالب
+          // 📈 التبويب الثالث المطور: عرض النتائج بالتاريخ والوقت والكلمة المخطأ فيها بالظبط! ✅
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance.collection('exams_results').orderBy('exam_date', descending: true).snapshots(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
               final docs = snapshot.data!.docs;
-              if (docs.isEmpty) return const Center(child: Text("لا توجد اختبارات مسجلة."));
+              if (docs.isEmpty) return const Center(child: Text("لا توجد اختبارات مسجلة حالياً."));
 
               return ListView.builder(
                 padding: const EdgeInsets.all(12),
                 itemCount: docs.length,
                 itemBuilder: (context, index) {
                   var data = docs[index].data() as Map<String, dynamic>;
-                  String docId = docs[index].id; // 🎯 جلب المعرف الفريد للنتيجة
+                  String docId = docs[index].id; 
                   String name = data['student_name'] ?? 'طالب';
                   double score = (data['score'] ?? 0.0).toDouble();
                   List<dynamic> errorsDetails = data['errors_details'] ?? [];
+                  String durationText = data['duration_text'] ?? '--:--';
+
+                  String dateString = "غير محدد";
+                  if (data['exam_date'] != null) {
+                    DateTime date = (data['exam_date'] as Timestamp).toDate();
+                    dateString = "${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')} - ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+                  }
 
                   return Card(
                     color: Colors.white,
@@ -291,11 +302,41 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                     child: ExpansionTile(
                       leading: CircleAvatar(
-                        backgroundColor: score >= 90 ? Colors.green.shade50 : Colors.orange.shade50,
-                        child: Text(score.toStringAsFixed(1), style: TextStyle(color: score >= 90 ? Colors.green.shade900 : Colors.orange.shade900, fontWeight: FontWeight.bold, fontSize: 13)),
+                        backgroundColor: score >= 90 ? Colors.green.shade50 : (score >= 80 ? Colors.amber.shade50 : Colors.red.shade50),
+                        child: Text(
+                          score.toStringAsFixed(1), 
+                          style: TextStyle(
+                            color: score >= 90 ? Colors.green.shade900 : (score >= 80 ? Colors.amber.shade900 : Colors.red.shade900), 
+                            fontWeight: FontWeight.bold, 
+                            fontSize: 13
+                          )
+                        ),
                       ),
                       title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text(errorsDetails.isEmpty ? "التسميع ممتاز وبدون أخطاء! 🎉" : "عدد مواضع الخربطة: ${errorsDetails.length} مواضع 🔽", style: TextStyle(fontSize: 12, color: errorsDetails.isEmpty ? Colors.green : Colors.red.shade700)),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.access_time_rounded, size: 13, color: Colors.grey.shade600),
+                                const SizedBox(width: 4),
+                                Text("الوقت: $dateString", style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                                const SizedBox(width: 12),
+                                Icon(Icons.timer_outlined, size: 13, color: Colors.amber.shade800),
+                                const SizedBox(width: 4),
+                                Text("المدة: $durationText", style: TextStyle(fontSize: 11, color: Colors.amber.shade900, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              errorsDetails.isEmpty ? "التسميع ممتاز وبدون أخطاء! 🎉" : "عدد مواضع الخربطة: ${errorsDetails.length} مواضع 🔽", 
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: errorsDetails.isEmpty ? Colors.green.shade700 : Colors.red.shade700)
+                            ),
+                          ],
+                        ),
+                      ),
                       children: [
                         if (errorsDetails.isNotEmpty)
                           Container(
@@ -306,23 +347,32 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text("تفاصيل مواضع الأخطاء من المصحف:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xff425c75))),
-                                const SizedBox(height: 5),
-                                ...errorsDetails.map((err) => Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 3),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.label_important_outline, size: 14, color: Colors.orange),
-                                      const SizedBox(width: 5),
-                                      Expanded(child: Text(err.toString(), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
-                                    ],
-                                  ),
-                                )).toList(),
+                                const SizedBox(height: 6),
+                                // 🎯 التعديل الجوهري: طباعة عناصر الأخطاء كـ نصوص صريحة ومقروءة لتظهر الكلمات والنوع معاً مية بالمية
+                                ...errorsDetails.map((err) {
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 4),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.label_important_outline, size: 15, color: Colors.purple),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: Text(
+                                            err.toString(), 
+                                            textDirection: TextDirection.rtl, // لضمان قراءة الكلمة العربية قبل نوع الخطأ بشكل منسق
+                                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
                               ],
                             ),
                           ),
-                        // 🎯 التعديل الجديد: إضافة زر الحذف نهاية تفاصيل النتيجة
                         Container(
                           width: double.infinity,
+                          color: Colors.grey.shade50,
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           child: Align(
                             alignment: Alignment.centerLeft,
