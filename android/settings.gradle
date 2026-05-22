@@ -5,13 +5,19 @@ pluginManagement {
         if (propertiesFile.exists()) {
             propertiesFile.withReader('UTF-8') { reader -> properties.load(reader) }
         }
-        // التعديل السحري صار هون: ضفنا سحب المسار من السيرفر كخيار بديل
         def flutterSdkPath = properties.getProperty('flutter.sdk') ?: System.getenv('FLUTTER_ROOT')
         assert flutterSdkPath != null, "Flutter SDK not found in local.properties or environment variables"
         return flutterSdkPath
     }()
 
     includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
+
+    // إضافة المستودعات الضرورية لحل مشكلة السطر 19
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
 }
 
 plugins {
