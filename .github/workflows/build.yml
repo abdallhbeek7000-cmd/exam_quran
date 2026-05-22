@@ -26,11 +26,12 @@ jobs:
           channel: 'stable'
           flutter-version: '3.22.x'
 
-      # 4. 🎯 السر بالتحديث الجديد: توليد ملف local.properties بالمتغير الصحيح!
+      # 4. 🎯 الضربة القاضية: استخراج المسار الفعلي للفلاتر من النظام
       - name: Generate local.properties for GitHub Server
         run: |
+          FLUTTER_PATH=$(dirname $(dirname $(which flutter)))
           echo "sdk.dir=$ANDROID_HOME" > android/local.properties
-          echo "flutter.sdk=$FLUTTER_ROOT" >> android/local.properties
+          echo "flutter.sdk=$FLUTTER_PATH" >> android/local.properties
           echo "flutter.versionCode=1" >> android/local.properties
           echo "flutter.versionName=1.0.0" >> android/local.properties
 
