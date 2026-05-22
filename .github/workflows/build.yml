@@ -26,15 +26,23 @@ jobs:
           channel: 'stable'
           flutter-version: '3.22.x'
 
-      # 4. سحب المكاتب (هنا يتم توليد local.properties تلقائياً)
+      # 4. 🎯 السر بالتحديث الجديد: توليد ملف local.properties بالمتغير الصحيح!
+      - name: Generate local.properties for GitHub Server
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          echo "flutter.sdk=$FLUTTER_ROOT" >> android/local.properties
+          echo "flutter.versionCode=1" >> android/local.properties
+          echo "flutter.versionName=1.0.0" >> android/local.properties
+
+      # 5. سحب المكاتب
       - name: Get Dependencies
         run: flutter pub get
 
-      # 5. بناء الـ APK
+      # 6. بناء الـ APK
       - name: Build APK
         run: flutter build apk --release
 
-      # 6. الرفع لقسم الـ Releases
+      # 7. الرفع لقسم الـ Releases
       - name: Upload APK to Releases
         uses: softprops/action-gh-release@v1
         with:
