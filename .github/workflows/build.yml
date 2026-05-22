@@ -19,27 +19,35 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      # 3. تثبيت الفلاتر سحابياً بـ إصدار محدد لإجبار السيرفر على التحميل الفوري
+      # 3. تثبيت الفلاتر سحابياً
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          flutter-version: '3.22.x' # تحديد الإصدار يمنع السيرفر من عمل Skip 🎯
+          flutter-version: '3.22.x'
 
-      # 4. سحب مكاتب المشروع
+      # 4. 🎯 السر اللي عملناه بالتطبيقات التانية: توليد ملف local.properties في السيرفر تلقائياً!
+      - name: Generate local.properties for GitHub Server
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          echo "flutter.sdk=$FLUTTER_HOME" >> android/local.properties
+          echo "flutter.versionCode=1" >> android/local.properties
+          echo "flutter.versionName=1.0.0" >> android/local.properties
+
+      # 5. سحب المكاتب
       - name: Get Dependencies
         run: flutter pub get
 
-      # 5. أمر بناء الـ APK
+      # 6. بناء الـ APK
       - name: Build APK
         run: flutter build apk --release
 
-      # 6. الرفع الفوري كـ روليز جديد تماماً
+      # 7. الرفع لقسم الـ Releases
       - name: Upload APK to Releases
         uses: softprops/action-gh-release@v1
         with:
           files: build/app/outputs/flutter-apk/app-release.apk
-          tag_name: v1.0.1 # 🌟 رقم جديد بالملي لتصفير كاش غيت هاب الملعون
-          name: الإصدار المطور والمصحح 📖
+          tag_name: v1.0.2
+          name: إصدار التطبيق المستقر 📖
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
