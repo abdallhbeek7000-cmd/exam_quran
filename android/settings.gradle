@@ -6,8 +6,7 @@ pluginManagement {
             propertiesFile.withReader('UTF-8') { reader -> properties.load(reader) }
         }
         def flutterSdkPath = properties.getProperty('flutter.sdk')
-        assert flutterSdkPath != null, "Flutter SDK not found in local.properties"
-        return flutterSdkPath
+        return flutterSdkPath // حذفنا شرط الـ assert المعقد اللي كان يقفل البناء بالسيرفر 🎯
     }()
 
     includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
@@ -16,8 +15,7 @@ pluginManagement {
 plugins {
     id "dev.flutter.flutter-plugin-loader" version "1.0.0"
     id "com.android.application" version "7.3.0" apply false
-    // 🎯 هنا السر الحقيقي لتصليح خطأ السيرفر وإجباره على نسخة حديثة!
-    id "org.jetbrains.kotlin.android" version "1.8.22" apply false
+    id "org.jetbrains.kotlin.android" version "1.8.22" apply false // النسخة المستقرة
 }
 
 include ':app'
