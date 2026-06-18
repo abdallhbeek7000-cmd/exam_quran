@@ -1,9 +1,10 @@
-import 'dart:ui'; // استيراد ضروري لتأثير التغبيش الزجاجي
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../widgets/animated_glass_background.dart'; // 👈 تأكد من صحة مسار ملف الخلفية
+import '../widgets/animated_glass_background.dart'; 
 import 'login_screen.dart'; 
-import 'interactive_exam_screen.dart'; 
+import 'interactive_exam_screen.dart';
+import 'student_results_screen.dart'; // 👈 استيراد شاشة النتائج الجديدة
 
 class TeacherStudentsPage extends StatefulWidget {
   final String supervisorId;
@@ -17,23 +18,20 @@ class TeacherStudentsPage extends StatefulWidget {
 class _TeacherStudentsPageState extends State<TeacherStudentsPage> {
   @override
   Widget build(BuildContext context) {
-    // 💡 معرفة حالة الثيم لتنسيق ألوان العناصر زجاجياً
     final isDark = Theme.of(context).brightness == Brightness.dark;
     const accentGold = Color(0xffd4af37);
     const primaryBlue = Color(0xff425c75);
 
-    // ألوان النصوص بناءً على الثيم
     final textColor = isDark ? Colors.white : primaryBlue;
     final subTextColor = isDark ? Colors.white70 : Colors.black54;
 
     return Scaffold(
-      // 💡 جعل الخلفية شفافة لتظهر حركة الليكويد غلاس، ودمج الـ AppBar
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true, 
       appBar: AppBar(
-        backgroundColor: Colors.transparent, // شفاف
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: const SizedBox(), // إخفاء سهم العودة الافتراضي
+        leading: const SizedBox(), 
         title: ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: BackdropFilter(
@@ -54,7 +52,6 @@ class _TeacherStudentsPageState extends State<TeacherStudentsPage> {
         ),
         centerTitle: true,
         actions: [
-          // زر خروج زجاجي دائري
           Container(
             margin: const EdgeInsets.only(left: 15),
             decoration: BoxDecoration(
@@ -99,7 +96,6 @@ class _TeacherStudentsPageState extends State<TeacherStudentsPage> {
               }
             }
 
-            // لون الحالة (أخضر/أحمر) يتناسب مع الزجاج
             final statusColor = isExamOpen ? Colors.teal : Colors.redAccent;
 
             return SafeArea(
@@ -107,7 +103,6 @@ class _TeacherStudentsPageState extends State<TeacherStudentsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 10),
-                  // 💎 بنر حالة النظام بتصميم Glassmorphism فخم
                   Padding(
                     padding: const EdgeInsets.all(15),
                     child: ClipRRect(
@@ -200,7 +195,6 @@ class _TeacherStudentsPageState extends State<TeacherStudentsPage> {
                             int startPage = studentData['start_page'] ?? 1;
                             int endPage = studentData['end_page'] ?? 604;
 
-                            // 💎 بطاقة الطالب بتصميم الليكويد غلاس (Glass Card)
                             return Container(
                               margin: const EdgeInsets.symmetric(vertical: 8),
                               decoration: BoxDecoration(
@@ -220,7 +214,6 @@ class _TeacherStudentsPageState extends State<TeacherStudentsPage> {
                                     ),
                                     child: Row(
                                       children: [
-                                        // صورة الطالب مع هالة ذهبية ناعمة
                                         Container(
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
@@ -235,16 +228,15 @@ class _TeacherStudentsPageState extends State<TeacherStudentsPage> {
                                                 : null,
                                           ),
                                         ),
-                                        const SizedBox(width: 18),
+                                        const SizedBox(width: 15),
                                         Expanded(
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Text(studentName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor)),
                                               const SizedBox(height: 3),
-                                              Text("الرقم: $serialData  •   للصف: $schoolGrade", style: TextStyle(color: subTextColor, fontSize: 12, fontWeight: FontWeight.w500)),
+                                              Text("الرقم: $serialData  •  للصف: $schoolGrade", style: TextStyle(color: subTextColor, fontSize: 12, fontWeight: FontWeight.w500)),
                                               const SizedBox(height: 8),
-                                              // 📝 عرض المطلوب بستايل زجاجي ملون وواضح
                                               Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                                 decoration: BoxDecoration(
@@ -261,57 +253,95 @@ class _TeacherStudentsPageState extends State<TeacherStudentsPage> {
                                           ),
                                         ),
                                         const SizedBox(width: 10),
-                                        // 🚀 زر بدء الاختبار بتصميم عصري (Liquid style)
                                         SizedBox(
-                                          height: 80,
+                                          height: 90,
                                           child: VerticalDivider(color: (isDark ? accentGold : primaryBlue).withOpacity(0.2), thickness: 1, indent: 10, endIndent: 10),
                                         ),
                                         const SizedBox(width: 5),
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: isExamOpen ? (isDark ? accentGold : primaryBlue) : Colors.grey.withOpacity(0.3), 
-                                            foregroundColor: isDark ? Colors.black : Colors.white,
-                                            elevation: isExamOpen ? 5 : 0,
-                                            shadowColor: (isDark ? accentGold : primaryBlue).withOpacity(0.5),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                                            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                                          ),
-                                          onPressed: isExamOpen ? () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => InteractiveExamPage(
-                                                  studentName: studentName,
-                                                  studentId: studentId,
-                                                  penaltyHifzSelf: penaltyHifzSelf,
-                                                  penaltyHifzCorrected: penaltyHifzCorrected,
-                                                  penaltyTashkeelSelf: penaltyTashkeelSelf,
-                                                  penaltyTashkeelCorrected: penaltyTashkeelCorrected,
-                                                  penaltyTajweedMain: penaltyTajweedMain,
-                                                  penaltyTajweedSub: penaltyTajweedSub,
-                                                  penaltyWaqfWrong: penaltyWaqfWrong,
-                                                  penaltyWaqfUgly: penaltyWaqfUgly,
-                                                  startPage: startPage,
-                                                  endPage: endPage,
+                                        
+                                        // 💡 تم التعديل هنا: إضافة زرين (النتائج وبدء)
+                                        Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            // 📊 زر النتائج
+                                            InkWell(
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) => StudentResultsScreen(
+                                                      studentId: studentId,
+                                                      studentName: studentName,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              borderRadius: BorderRadius.circular(10),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blueAccent.withOpacity(0.1),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
+                                                ),
+                                                child: const Column(
+                                                  children: [
+                                                    Icon(Icons.analytics_rounded, size: 22, color: Colors.blueAccent),
+                                                    SizedBox(height: 3),
+                                                    Text("النتائج", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blueAccent)),
+                                                  ],
                                                 ),
                                               ),
-                                            );
-                                          } : () {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                backgroundColor: Colors.redAccent,
-                                                content: const Text('نظام الاختبارات مغلق حالياً ولا يسمح بالرصد! 🔒', style: TextStyle(fontWeight: FontWeight.bold)),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            // 🚀 زر البدء
+                                            InkWell(
+                                              onTap: isExamOpen ? () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) => InteractiveExamPage(
+                                                      studentName: studentName,
+                                                      studentId: studentId,
+                                                      penaltyHifzSelf: penaltyHifzSelf,
+                                                      penaltyHifzCorrected: penaltyHifzCorrected,
+                                                      penaltyTashkeelSelf: penaltyTashkeelSelf,
+                                                      penaltyTashkeelCorrected: penaltyTashkeelCorrected,
+                                                      penaltyTajweedMain: penaltyTajweedMain,
+                                                      penaltyTajweedSub: penaltyTajweedSub,
+                                                      penaltyWaqfWrong: penaltyWaqfWrong,
+                                                      penaltyWaqfUgly: penaltyWaqfUgly,
+                                                      startPage: startPage,
+                                                      endPage: endPage,
+                                                    ),
+                                                  ),
+                                                );
+                                              } : () {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(
+                                                    backgroundColor: Colors.redAccent,
+                                                    content: Text('نظام الاختبارات مغلق حالياً ولا يسمح بالرصد! 🔒', style: TextStyle(fontWeight: FontWeight.bold)),
+                                                  ),
+                                                );
+                                              },
+                                              borderRadius: BorderRadius.circular(10),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                                decoration: BoxDecoration(
+                                                  color: isExamOpen ? (isDark ? accentGold.withOpacity(0.2) : primaryBlue.withOpacity(0.1)) : Colors.grey.withOpacity(0.2),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  border: Border.all(color: isExamOpen ? (isDark ? accentGold : primaryBlue).withOpacity(0.4) : Colors.grey),
+                                                ),
+                                                child: Column(
+                                                  children: [
+                                                    Icon(Icons.play_circle_fill_rounded, size: 22, color: isExamOpen ? (isDark ? accentGold : primaryBlue) : Colors.grey),
+                                                    const SizedBox(height: 3),
+                                                    Text("بدء", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isExamOpen ? (isDark ? accentGold : primaryBlue) : Colors.grey)),
+                                                  ],
+                                                ),
                                               ),
-                                            );
-                                          },
-                                          child: const Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(Icons.play_circle_fill_rounded, size: 28),
-                                              SizedBox(height: 5),
-                                              Text("بدء", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                            ],
-                                          ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
