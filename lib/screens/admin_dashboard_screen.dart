@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login_screen.dart';
+// 🚀 استدعاء صفحة عرض المصحف الجديدة
+import 'read_only_mushaf_screen.dart'; 
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -515,6 +517,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
                   double score = (data['score'] ?? 0.0).toDouble();
                   List<dynamic> errorsDetails = data['errors_details'] ?? [];
                   String durationText = data['duration_text'] ?? '--:--';
+                  
+                  // 🚀 جلب أرقام صفحات هذا الاختبار تحديداً
+                  int examStartPage = data['start_page'] ?? 1;
+                  int examEndPage = data['end_page'] ?? 604;
 
                   String dateString = "غير محدد";
                   if (data['exam_date'] != null) {
@@ -534,7 +540,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
                       boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 3))],
                     ),
                     child: Theme(
-                      data: Theme.of(context).copyWith(dividerColor: Colors.transparent), // لإزالة الخط الفاصل عند فتح القائمة
+                      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                       child: ExpansionTile(
                         iconColor: primaryColor,
                         collapsedIconColor: Colors.grey,
@@ -591,50 +597,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
                           ),
                         ),
                         children: [
-                          if (errorsDetails.isNotEmpty)
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.red.shade50.withOpacity(0.5),
-                                border: Border(top: BorderSide(color: Colors.grey.shade200))
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Row(
-                                    children: [
-                                      Icon(Icons.manage_search_rounded, size: 18, color: Colors.redAccent),
-                                      SizedBox(width: 6),
-                                      Text("تفاصيل مواضع الأخطاء:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.redAccent)),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 10),
-                                  ...errorsDetails.map((err) {
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 6),
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          const Padding(
-                                            padding: EdgeInsets.only(top: 4),
-                                            child: Icon(Icons.circle, size: 8, color: Colors.redAccent),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(
-                                              err.toString(), 
-                                              textDirection: TextDirection.rtl,
-                                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87, height: 1.4)
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
-                                ],
-                              ),
-                            ),
+                          // 🚀 إزالة قسم النصوص، والإبقاء فقط على أزرار التحكم
                           Container(
                             width: double.infinity,
                             decoration: BoxDecoration(
@@ -642,15 +605,43 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
                               borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16)),
                               border: Border(top: BorderSide(color: Colors.grey.shade200))
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: TextButton.icon(
-                                onPressed: () => _deleteExamResult(docId, name),
-                                style: TextButton.styleFrom(foregroundColor: Colors.red, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
-                                icon: const Icon(Icons.delete_outline_rounded, size: 20),
-                                label: const Text("حذف هذه النتيجة", style: TextStyle(fontWeight: FontWeight.bold)),
-                              ),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                // زر حذف النتيجة
+                                TextButton.icon(
+                                  onPressed: () => _deleteExamResult(docId, name),
+                                  style: TextButton.styleFrom(foregroundColor: Colors.red, padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
+                                  icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                                  label: const Text("حذف النتيجة", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, fontFamily: 'Cairo')),
+                                ),
+                                // 🚀 الزر لفتح المصحف بالصفحات المخصصة
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ReadOnlyMushafScreen(
+                                          studentName: name,
+                                          startPage: examStartPage,
+                                          endPage: examEndPage,
+                                          errorsList: errorsDetails,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.teal.shade600,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                  icon: const Icon(Icons.menu_book_rounded, size: 18),
+                                  label: const Text("عرض المصحف 📖", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, fontFamily: 'Cairo')),
+                                ),
+                              ],
                             ),
                           ),
                         ],

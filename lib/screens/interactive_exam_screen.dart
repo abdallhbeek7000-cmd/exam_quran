@@ -253,7 +253,7 @@ class _InteractiveExamPageState extends State<InteractiveExamPage> {
               ),
             ),
 
-            // عرض المصحف الشريف بسلاسة تامة
+            // عرض المصحف الشريف كـ "كتلة واحدة" وتلوين لفظ الجلالة
             Expanded(
               child: PageView.builder(
                 physics: const BouncingScrollPhysics(),
@@ -274,17 +274,15 @@ class _InteractiveExamPageState extends State<InteractiveExamPage> {
                           alignment: PlaceholderAlignment.middle,
                           child: Container(
                             width: double.infinity,
-                            margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey.shade300, width: 1),
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: const BoxDecoration(
+                              border: Border.symmetric(horizontal: BorderSide(color: Colors.black54, width: 1.5)),
                             ),
                             child: Text(
                               "سُورَةُ ${quran.getSurahNameArabic(surahNum)}",
                               textAlign: TextAlign.center,
-                              style: const TextStyle(fontFamily: 'Uthmanic', fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black87),
+                              style: const TextStyle(fontFamily: 'Uthmanic', fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black87),
                             ),
                           ),
                         ),
@@ -295,7 +293,7 @@ class _InteractiveExamPageState extends State<InteractiveExamPage> {
                         pageTextSpans.add(
                           TextSpan(
                             text: "${quran.basmala}\n",
-                            style: const TextStyle(fontFamily: 'Uthmanic', fontSize: 24, color: Colors.black87, height: 2.0),
+                            style: const TextStyle(fontFamily: 'Uthmanic', fontSize: 22, color: Colors.black87, height: 1.6),
                           ),
                         );
                       }
@@ -312,22 +310,19 @@ class _InteractiveExamPageState extends State<InteractiveExamPage> {
                         bool hasError = wrongWordsLog.containsKey(wordKey);
                         String? errorType = wrongWordsLog[wordKey];
 
-                        bool isLafzJalalah = word.contains('اللَّه') ||
-                            word.contains('اللّه') ||
-                            word.contains('لِلَّه') ||
-                            word.contains('ٱللَّه');
+                        // 🚀 خوارزمية ذكية لاصطياد لفظ الجلالة بكل حالاته بدون أي خطأ
+                        String plainWord = word.replaceAll(RegExp(r'[\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]'), '');
+                        bool isLafzJalalah = ['الله', 'لله', 'تالله', 'بالله', 'فالله', 'والله', 'ٱلله', 'بٱلله', 'كٱلله', 'فٱلله', 'وٱلله', 'ولله', 'فلله', 'اللهم', 'ٱللهم', 'واللهم', 'فاللهم'].contains(plainWord);
 
                         pageTextSpans.add(
                           TextSpan(
                             text: "$word ",
                             style: TextStyle(
                               fontFamily: 'Uthmanic',
-                              fontSize: 26,
+                              fontSize: 25,
                               fontWeight: FontWeight.w600,
-                              height: 1.9,
-                              color: hasError
-                                  ? Colors.white
-                                  : (isLafzJalalah ? Colors.red.shade700 : Colors.black87),
+                              height: 1.45, 
+                              color: hasError ? Colors.white : (isLafzJalalah ? Colors.red.shade700 : Colors.black87),
                               backgroundColor: hasError ? _getErrorColor(errorType) : Colors.transparent,
                             ),
                             recognizer: TapGestureRecognizer()..onTap = () => _showErrorMenu(context, word, wordKey),
@@ -339,19 +334,19 @@ class _InteractiveExamPageState extends State<InteractiveExamPage> {
                         WidgetSpan(
                           alignment: PlaceholderAlignment.middle,
                           child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
                             child: Stack(
                               alignment: Alignment.center,
                               children: [
                                 const Text(
                                   "\u06DD",
-                                  style: TextStyle(fontFamily: 'Uthmanic', fontSize: 34, color: Colors.black45, height: 1),
+                                  style: TextStyle(fontFamily: 'Uthmanic', fontSize: 32, color: Colors.black45, height: 1),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 3),
+                                  padding: const EdgeInsets.only(top: 2),
                                   child: Text(
                                     _toArabicNumber(verseNum),
-                                    style: const TextStyle(fontFamily: 'Uthmanic', fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87, height: 1),
+                                    style: const TextStyle(fontFamily: 'Uthmanic', fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87, height: 1),
                                   ),
                                 ),
                               ],
@@ -369,15 +364,19 @@ class _InteractiveExamPageState extends State<InteractiveExamPage> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.grey.shade200),
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 3))],
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        child: RichText(
-                          textDirection: TextDirection.rtl,
-                          textAlign: TextAlign.justify,
-                          text: TextSpan(children: pageTextSpans),
+                    child: Center(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Container(
+                          width: 420,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                          child: RichText(
+                            textDirection: TextDirection.rtl,
+                            textAlign: TextAlign.justify,
+                            text: TextSpan(children: pageTextSpans),
+                          ),
                         ),
                       ),
                     ),
@@ -657,7 +656,6 @@ class _InteractiveExamPageState extends State<InteractiveExamPage> {
         'elapsed_seconds': _elapsedSeconds,
         'duration_text': _formatDuration(_elapsedSeconds),
         'errors_details': wrongWordsWithText.values.toList(),
-        // 🚀 إضافة الحقول المخصصة لتكليف الاختبار ليقرأها المصحف الخاص بالنتائج لاحقاً
         'start_page': widget.startPage,
         'end_page': widget.endPage,
       });
